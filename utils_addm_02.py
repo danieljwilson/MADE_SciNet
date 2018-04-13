@@ -662,7 +662,7 @@ def rtDistFunc(nonDec, values_array, path_to_save):
 
     for param_combo in tqdm(all_sims):                 # loop through the simulations for each parameter combo that was simulated
         # List of all unique value pairs
-        value_pairs = np.unique(values_array, axis=1)
+        value_pairs = np.transpose(np.unique(values_array, axis=1))   # transposing to get rows of value pairs
 
         # Name for outer dict based on the weight, boundary and theta, with an integer (as STRING) leading
         extracted_parameters = str(round(all_sims[param_combo].scaling[0] ,3)) + '_' + str(round(all_sims[param_combo].upper_boundary[0] ,3)) + '_' + str(round(all_sims[param_combo].theta[0] ,3))
@@ -673,7 +673,7 @@ def rtDistFunc(nonDec, values_array, path_to_save):
 
         # create subsets of RT for each drift value
         for x in value_pairs:
-            data = all_sims[param_combo][(all_sims[param_combo].val_face == value_pairs[0][y]) & (all_sims[param_combo].val_house == value_pairs[1][y])]
+            data = all_sims[param_combo][(all_sims[param_combo].val_face == value_pairs[y][0]) & (all_sims[param_combo].val_house == value_pairs[y][1])]
             
             data0 = data[data.resp == -1]             # select reject responses
             data1 = data[data.resp == 1]              # select accept responses
