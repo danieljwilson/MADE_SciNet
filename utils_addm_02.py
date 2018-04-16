@@ -806,8 +806,15 @@ def fit_subjects(subject_dict, rt_dist, nonDec, path_to_save):
 
         fit_subj[subject] = np.log(subject_dict[subject].iloc[:, 9:]) * -1      # Convert to natural log and Remove unnecessary columns
         
+
+    # make directory if it does not exist
+    directory = path_to_save                            # set Directory to save file
+
+    if not os.path.exists(directory):                   # create the directory if it does not already exist
+        os.makedirs(directory)
+
     # Save to pickle
-    path_to_save = path_to_save + "MLE.pickle"
+    path_to_save = directory + "/MLE.pickle"
     pickle_out = open(path_to_save,"wb")
     pickle.dump(fit_subj, pickle_out)
     pickle_out.close()
