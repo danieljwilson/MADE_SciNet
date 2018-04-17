@@ -894,7 +894,8 @@ def sort_subject_fit(subj_mle, path_to_save):
         
         subject_fit[x] = subject_fit[x].reset_index(drop=True)                  # rename index to integer values
         
-        # Save to pickle
+
+    # Save to pickle
     path_to_save = path_to_save + "summed_MLE.pickle"
     pickle_out = open(path_to_save,"wb")
     pickle.dump(subject_fit, pickle_out)
