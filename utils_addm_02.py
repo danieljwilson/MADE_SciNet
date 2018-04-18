@@ -209,15 +209,51 @@ def create_dwell_array(num_sims, fixations, data, exp_data=None):
         num_sims: int, total number of simulations being run for each parameter combination
         data: str, are we creating fixations for simulations or are we running test data
     """
-    df = pd.DataFrame.from_csv(fixations, header=0, sep=",", index_col=None)
-    
-    # first create distributions of first/mid fixations
-    first_fix_dist = df['fix_time'][df['fix_num']==1]
-    mid_fix_dist = df['fix_time'][(df['fix_num']>1) & (df['rev_fix_num']>1)]
+    if data == 'sim':
+
+        df = pd.DataFrame.from_csv(fixations, header=0, sep=",", index_col=None)
+        
+        # first create distributions of first/mid fixations
+        first_fix_dist = df['fix_time'][df['fix_num']==1]
+        mid_fix_dist = df['fix_time'][(df['fix_num']>1) & (df['rev_fix_num']>1)]
+
+
+    if data == 'test':
+        df = fixations
+        
+        # first create distributions of first/mid fixations
+        first_fix_dist = df['fix_time'][df['fix_num']==1]
+        mid_fix_dist = df['fix_time'][(df['fix_num']>1) & (df['rev_fix_num']>1)]
 
     # make sure that none of the final columns in the dwell array has a value smaller than maxRT
     min_time = 0
     
+
+    #--------------#
+    # SIM          #
+    #------------------------------------------------------------------------------------ #
+    # NOTE: for simulations (creating the initial distributions of RTs and choices)       #
+    # we are not looking at actual trial data. Just creating fixation durations from the  #
+    # distributions                                                                       #
+    #-------------------------------------------------------------------------------------#
+    
+    if data == 'sim':
+        while min_time < 10000:   # 10,000 = maxRT
+            # create column of first fixations
+            dwell_array = np.reshape(((np.random.choice(first_fix_dist, num_sims, replace=True))), (num_sims,1))
+
+            # create additional columns from middle fixation distribution
+            for column in range(20):
+                append_mid_fix_array = np.reshape(((np.random.choice(mid_fix_dist, num_sims, replace=True))), (num_sims,1))
+                dwell_array = np.append(dwell_array, append_mid_fix_array, axis=1)
+
+            # make each column the sum of itself and the previous column
+            for column in range(1, np.shape(dwell_array)[1]):
+                dwell_array[:,column] = dwell_array[:,column] + dwell_array[:,(column-1)] 
+
+            min_time = min(dwell_array[:,20])
+
+
     #--------------#
     # TEST         #
     #------------------------------------------------------------------------------------ #
@@ -266,30 +302,6 @@ def create_dwell_array(num_sims, fixations, data, exp_data=None):
                 dwell_array[:,column] = dwell_array[:,column] + dwell_array[:,(column-1)] 
 
             min_time = min(dwell_array[:,21])
-            
-    #--------------#
-    # SIM          #
-    #------------------------------------------------------------------------------------ #
-    # NOTE: for simulations (creating the initial distributions of RTs and choices)       #
-    # we are not looking at actual trial data. Just creating fixation durations from the  #
-    # distributions                                                                       #
-    #-------------------------------------------------------------------------------------#
-    
-    if data == 'sim':
-        while min_time < 10000:   # 10,000 = maxRT
-            # create column of first fixations
-            dwell_array = np.reshape(((np.random.choice(first_fix_dist, num_sims, replace=True))), (num_sims,1))
-
-            # create additional columns from middle fixation distribution
-            for column in range(20):
-                append_mid_fix_array = np.reshape(((np.random.choice(mid_fix_dist, num_sims, replace=True))), (num_sims,1))
-                dwell_array = np.append(dwell_array, append_mid_fix_array, axis=1)
-
-            # make each column the sum of itself and the previous column
-            for column in range(1, np.shape(dwell_array)[1]):
-                dwell_array[:,column] = dwell_array[:,column] + dwell_array[:,(column-1)] 
-
-            min_time = min(dwell_array[:,20])
         
     # cast to int (does this make it faster?)
     dwell_array = dwell_array.astype(int)
