@@ -198,6 +198,116 @@ def save_sim_combo_shelve(dfOut, loop_num):
         shelf[str(loop_num)] = dfOut
 
 
+def create_dwell_array_subject(num_sims, subj_first_fix, subj_mid_fix, data, exp_data=None):
+    """
+    Pulls out first and middle fixations from fixations_file_name.
+    Creates distribution of fixation times that can be used in aDDM simulation
+
+    Args:
+        fixations: df, fixations selected according to train/test parameter
+        exp_data: df, experimental data selected according to train/test parameter
+        num_sims: int, total number of simulations being run for each parameter combination
+        data: str, are we creating fixations for simulations or are we running test data
+    """
+    if data == 'sim':
+        
+        # first create distributions of first/mid fixations
+        first_fix_dist = subj_first_fix
+        mid_fix_dist = subj_mid_fix
+
+
+    if data == 'test':
+        df = fixations
+        
+        # first create distributions of first/mid fixations
+        first_fix_dist = df['fix_time'][df['fix_num']==1]
+        mid_fix_dist = df['fix_time'][(df['fix_num']>1) & (df['rev_fix_num']>1)]
+
+    # make sure that none of the final columns in the dwell array has a value smaller than maxRT
+    min_time = 0
+    
+
+    #--------------#
+    # SIM          #
+    #------------------------------------------------------------------------------------ #
+    # NOTE: for simulations (creating the initial distributions of RTs and choices)       #
+    # we are not looking at actual trial data. Just creating fixation durations from the  #
+    # distributions                                                                       #
+    #-------------------------------------------------------------------------------------#
+    
+    if data == 'sim':
+        while min_time < 10000:   # 10,000 = maxRT
+            # create column of first fixations
+            dwell_array = np.reshape(((np.random.choice(first_fix_dist, num_sims, replace=True))), (num_sims,1))
+
+            # create additional columns from middle fixation distribution
+            for column in range(20):
+                append_mid_fix_array = np.reshape(((np.random.choice(mid_fix_dist, num_sims, replace=True))), (num_sims,1))
+                dwell_array = np.append(dwell_array, append_mid_fix_array, axis=1)
+
+            # make each column the sum of itself and the previous column
+            for column in range(1, np.shape(dwell_array)[1]):
+                dwell_array[:,column] = dwell_array[:,column] + dwell_array[:,(column-1)] 
+
+            min_time = min(dwell_array[:,20])
+
+
+    #--------------#
+    # TEST         #
+    #------------------------------------------------------------------------------------ #
+    # NOTE: the difference with the 'test' version is that we are using the actual        #
+    # initial fixations and then filling out the rest of the fixations by sampling the    #
+    # group or subject first/mid fixation distribution                                    #
+    #-------------------------------------------------------------------------------------#
+
+    if data == 'test':
+        
+        # calculuate size based on actual number of trials (odd or even)
+        size = len(exp_data.trial) * num_sims 
+    
+        while min_time < 10000:   # 10,000 = maxRT
+            # add data from trial fixations
+            dwell_array = np.reshape(((np.random.choice(first_fix_dist, size , replace=True))), (size,1))
+
+            # create additional columns (number of columns determined by range()) from middle fixation distribution
+            for column in range(21):
+                append_mid_fix_array = np.reshape(((np.random.choice(mid_fix_dist, size, replace=True))), (size,1))
+                dwell_array = np.append(dwell_array, append_mid_fix_array, axis=1)
+
+            # overwrite initial columns with actual fixation values
+            row_start = 0
+            row_end = 1000  # Need to change this to the number of sims!
+            column = 0
+
+            #from IPython.core.debugger import Tracer; Tracer()()
+            for i in tqdm(range(len(fixations.trial))):
+                if i == 0:    # first row
+                    dwell_array[row_start:row_end, column] = fixations.fix_time[i]
+                    
+
+                elif (fixations.trial[i]) == (fixations.trial[i-1]):
+                    column +=1
+                    dwell_array[row_start:row_end, column] = fixations.fix_time[i]
+
+                else:
+                    column = 0
+                    row_start +=1000
+                    row_end += 1000
+                    dwell_array[row_start:row_end, column] = fixations.fix_time[i]
+
+            # make each column the sum of itself and the previous column
+            for column in range(1, np.shape(dwell_array)[1]):
+                dwell_array[:,column] = dwell_array[:,column] + dwell_array[:,(column-1)] 
+
+            min_time = min(dwell_array[:,21])
+        
+    # cast to int (does this make it faster?)
+    dwell_array = dwell_array.astype(int)
+    t_dwells = np.transpose(dwell_array)        # this is to make things row major
+    
+    return t_dwells
+
+
 def create_dwell_array(num_sims, fixations, data, exp_data=None):
     """
     Pulls out first and middle fixations from fixations_file_name.
