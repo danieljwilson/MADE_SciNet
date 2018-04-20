@@ -148,14 +148,19 @@ def save_parameters(parameter_combos):
     iterDf.to_csv(directory + '/parameter_combos_' + str(time) + '.csv')
 
 
-def save_sim_combo_csv(dfOut, loop_num):
+def save_sim_combo_csv(dfOut, loop_num, subject=None):
     """
     """
+
     now = dt.datetime.now()
     time = now.strftime("%Y-%m-%d-%H-%M")
     date = now.strftime("%Y-%m-%d")
 
-    directory = ('outputs/' + str(date) + '/sims')                # set Directory to save CSV
+    if subject:
+        directory = ('outputs/' + str(date) + '/' + str(subject) + '/sims') 
+
+    else:
+        directory = ('outputs/' + str(date) + '/sims')                # set Directory to save CSV
 
     if not os.path.exists(directory):                   # create the directory if it does not already exist
         os.makedirs(directory)
