@@ -157,10 +157,10 @@ def save_sim_combo_csv(dfOut, loop_num, subject=None):
     date = now.strftime("%Y-%m-%d")
 
     if subject:
-        directory = ('outputs/' + str(date) + '/' + str(subject) + '/sims') 
+        directory = ('/scratch/c/chutcher/wilsodj/MADE/outputs/' + str(date) + '/' + str(subject) + '/sims') 
 
     else:
-        directory = ('outputs/' + str(date) + '/sims')                # set Directory to save CSV
+        directory = ('/scratch/c/chutcher/wilsodj/MADE/outputs/' + str(date) + '/sims')                # set Directory to save CSV
 
     if not os.path.exists(directory):                   # create the directory if it does not already exist
         os.makedirs(directory)
