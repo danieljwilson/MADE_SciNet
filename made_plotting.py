@@ -20,7 +20,7 @@ from plotly import tools
 plotly.offline.init_notebook_mode(connected=True)
 
 
-def plotly_combined(subject_num, subject_data, test_expdata, subj_params_df):
+def plotly_combined(subject_num, subject_data, test_expdata, subj_params_df, sim_type=None):
     # Allows for offline plotting (importing up top now)
     # from plotly import tools
     # plotly.offline.init_notebook_mode(connected=True)
@@ -30,7 +30,12 @@ def plotly_combined(subject_num, subject_data, test_expdata, subj_params_df):
     v = str(round(np.mean(test_expdata.est_scaling[test_expdata.subject == int(subject_num)]), 3))
     a = str(round(np.mean(test_expdata.est_boundary[test_expdata.subject == int(subject_num)]), 3))
     t = str(round(np.mean(test_expdata.est_theta[test_expdata.subject == int(subject_num)]), 3))
-    mle = round(subj_params_df.loc[int(subject_num), 'MLE'],2)
+
+    if sim_type == "synth":
+        mle = round(subj_params_df.loc[0, 'MLE'],2)
+    else:
+        mle = round(subj_params_df.loc[int(subject_num), 'MLE'],2)
+
     
     x = subject.quantile_means 
 
