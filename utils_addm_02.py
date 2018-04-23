@@ -203,7 +203,7 @@ def save_sim_combo_shelve(dfOut, loop_num):
         shelf[str(loop_num)] = dfOut
 
 
-def create_dwell_array_subject(num_sims, subj_first_fix, subj_mid_fix, data, exp_data=None):
+def create_dwell_array_subject(num_sims, subj_first_fix, subj_mid_fix, data, exp_data=None, fixations=None):
     """
     Pulls out first and middle fixations from fixations_file_name.
     Creates distribution of fixation times that can be used in aDDM simulation
@@ -213,6 +213,7 @@ def create_dwell_array_subject(num_sims, subj_first_fix, subj_mid_fix, data, exp
         exp_data: df, experimental data selected according to train/test parameter
         num_sims: int, total number of simulations being run for each parameter combination
         data: str, are we creating fixations for simulations or are we running test data
+        fixations: used for getting the test fixations durations for a subject
     """
     if data == 'sim':
         
@@ -222,11 +223,10 @@ def create_dwell_array_subject(num_sims, subj_first_fix, subj_mid_fix, data, exp
 
 
     if data == 'test':
-        df = fixations
         
         # first create distributions of first/mid fixations
-        first_fix_dist = df['fix_time'][df['fix_num']==1]
-        mid_fix_dist = df['fix_time'][(df['fix_num']>1) & (df['rev_fix_num']>1)]
+        first_fix_dist = subj_first_fix
+        mid_fix_dist = subj_mid_fix
 
     # make sure that none of the final columns in the dwell array has a value smaller than maxRT
     min_time = 0
